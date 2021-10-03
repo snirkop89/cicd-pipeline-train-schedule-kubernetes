@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         //be sure to replace "willbla" with your own Docker Hub username
-        DOCKER_IMAGE_NAME = "willbla/train-schedule"
+        DOCKER_IMAGE_NAME = "snirkop/train-schedule"
     }
     stages {
         stage('Build') {
@@ -31,7 +31,7 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker_hub_login') {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-login') {
                         app.push("${env.BUILD_NUMBER}")
                         app.push("latest")
                     }
@@ -45,7 +45,11 @@ pipeline {
             steps {
                 input 'Deploy to Production?'
                 milestone(1)
-                //implement Kubernetes deployment here
+                kubernetesDeploy(
+                    kubeconfigId: 'kube-config',
+                    configs: 'deployl.yml'
+                    enableConfigSubstitution: true
+                )
             }
         }
     }
